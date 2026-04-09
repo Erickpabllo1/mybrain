@@ -13,7 +13,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npx prisma generate
+RUN node_modules/.bin/prisma generate
 RUN npm run build
 
 # Runner
@@ -29,15 +29,17 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copia o schema do Prisma para rodar migrations no startup
+# Copia o schema + CLI do Prisma (versão local, evita baixar v7 via npx)
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Roda migrations e inicia o app
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+# Usa CLI local (v5) para evitar que npx baixe v7 incompatível
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node server.js"]
