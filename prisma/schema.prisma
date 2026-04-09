@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id        Int      @id @default(autoincrement())
+  title     String
+  time      String
+  completed Boolean  @default(false)
+  dayId     String   // 'seg' | 'ter' | 'qua' | 'qui' | 'sex'
+  weekStart DateTime // Segunda-feira da semana (UTC midnight)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([weekStart, dayId])
+}
