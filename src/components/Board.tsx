@@ -114,7 +114,7 @@ function Column({
       isWeekend ? 'bg-[#111111] border-white/[0.03]' : 'bg-[#131313] border-white/5'
     }`}>
       <div className="flex items-center justify-between mb-4 px-1">
-        <h3 className={`text-sm font-semibold ${isWeekend ? 'text-[#7a7a7a]' : 'text-[#acabab]'}`}>
+        <h3 className="text-sm font-semibold text-[#adc6ff]">
           {day.name}
         </h3>
         {tasks.length > 0 && (

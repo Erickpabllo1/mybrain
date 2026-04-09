@@ -34,18 +34,20 @@ export default async function RotinaPage({ searchParams }: { searchParams: Searc
   if (view === 'calendar') {
     if (!currentMonth) currentMonth = toYearMonth(weekStart)
     const { start, end } = getMonthRange(currentMonth)
-    const firstWeekOfMonth = getWeekStart(start.toISOString())
 
-    const tasks = await prisma.task.findMany({
-      where: { weekStart: { gte: firstWeekOfMonth, lte: end } },
-      orderBy: { time: 'asc' },
+    const calendarEvents = await prisma.calendarEvent.findMany({
+      where: { date: { gte: start, lte: end } },
+      orderBy: { date: 'asc' },
     })
 
     content = (
       <CalendarView
-        tasks={serialize(tasks)}
+        events={calendarEvents.map(e => ({
+          id: e.id,
+          date: e.date.toISOString().split('T')[0],
+          note: e.note,
+        }))}
         currentMonth={currentMonth}
-        weekStart={weekStart.toISOString()}
       />
     )
   } else if (view === 'archived') {

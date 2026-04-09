@@ -1,9 +1,10 @@
 'use client'
 
-import { Bell, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatWeekRange, formatMonthYear, toYearMonth } from '@/lib/utils'
+import { NotificationBell } from '@/components/NotificationBell'
 
 interface HeaderProps {
   weekStart: string
@@ -93,9 +94,7 @@ export function Header({ weekStart, currentView, currentMonth }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2 text-[#acabab]">
-          <button className="hover:bg-white/5 rounded-full p-2 transition-all duration-200">
-            <Bell className="w-5 h-5" />
-          </button>
+          <NotificationBell />
           <button className="hover:bg-white/5 rounded-full p-2 transition-all duration-200">
             <MoreVertical className="w-5 h-5" />
           </button>

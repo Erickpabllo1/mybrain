@@ -19,3 +19,14 @@ model Task {
 
   @@index([weekStart, dayId])
 }
+
+model CalendarEvent {
+  id        Int      @id @default(autoincrement())
+  date      DateTime // UTC midnight do dia específico
+  note      String   @default("")
+  time      String   @default("") // "HH:MM" ou vazio
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
