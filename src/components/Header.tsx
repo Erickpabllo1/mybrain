@@ -3,17 +3,52 @@
 import { Bell, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { formatWeekRange } from '@/lib/utils'
+import { formatWeekRange, formatMonthYear, toYearMonth } from '@/lib/utils'
 
-export function Header({ weekStart }: { weekStart: string }) {
+interface HeaderProps {
+  weekStart: string
+  currentView: string
+  currentMonth?: string
+}
+
+const TABS = [
+  { id: 'overview', label: 'Visão Geral' },
+  { id: 'calendar', label: 'Calendário' },
+  { id: 'archived', label: 'Arquivados' },
+]
+
+export function Header({ weekStart, currentView, currentMonth }: HeaderProps) {
   const router = useRouter()
   const weekStartDate = new Date(weekStart)
+
+  const buildUrl = (view: string, weekDate: Date, month?: string) => {
+    const w = weekDate.toISOString().split('T')[0]
+    if (view === 'overview') return `/rotina?week=${w}`
+    if (view === 'calendar') {
+      const m = month || toYearMonth(weekDate)
+      return `/rotina?view=calendar&week=${w}&month=${m}`
+    }
+    return `/rotina?view=${view}&week=${w}`
+  }
 
   const navigate = (offset: number) => {
     const d = new Date(weekStartDate)
     d.setUTCDate(d.getUTCDate() + offset * 7)
-    router.push(`/rotina?week=${d.toISOString().split('T')[0]}`)
+    const newMonth = currentView === 'calendar'
+      ? toYearMonth(d)
+      : currentMonth
+    router.push(buildUrl(currentView, d, newMonth))
   }
+
+  const goToView = (view: string) => {
+    router.push(buildUrl(view, weekStartDate, currentMonth))
+  }
+
+  const subtitle = currentView === 'calendar' && currentMonth
+    ? formatMonthYear(currentMonth).toUpperCase()
+    : currentView === 'archived'
+    ? 'TAREFAS ARQUIVADAS'
+    : formatWeekRange(weekStartDate)
 
   return (
     <header className="flex justify-between items-center w-full h-20 px-8 bg-[#0e0e0e] z-10 shrink-0">
@@ -21,7 +56,7 @@ export function Header({ weekStart }: { weekStart: string }) {
         <div className="flex flex-col">
           <h2 className="text-xl font-semibold text-white leading-tight">Minha rotina</h2>
           <span className="text-[0.6875rem] text-[#acabab] tracking-wider uppercase font-medium mt-1">
-            {formatWeekRange(weekStartDate)}
+            {subtitle}
           </span>
         </div>
         <div className="flex items-center gap-0.5 ml-1">
@@ -42,9 +77,19 @@ export function Header({ weekStart }: { weekStart: string }) {
 
       <div className="flex items-center gap-8">
         <nav className="hidden md:flex items-center gap-6">
-          <a href="#" className="text-[#adc6ff] border-b border-[#adc6ff] pb-1 text-[0.875rem]">Visão Geral</a>
-          <a href="#" className="text-[#acabab] hover:text-gray-300 transition-colors text-[0.875rem]">Calendário</a>
-          <a href="#" className="text-[#acabab] hover:text-gray-300 transition-colors text-[0.875rem]">Arquivados</a>
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => goToView(tab.id)}
+              className={`transition-colors text-[0.875rem] pb-1 ${
+                currentView === tab.id
+                  ? 'text-[#adc6ff] border-b border-[#adc6ff]'
+                  : 'text-[#acabab] hover:text-gray-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </nav>
 
         <div className="flex items-center gap-2 text-[#acabab]">

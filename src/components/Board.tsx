@@ -9,7 +9,11 @@ const DAYS_CONFIG = [
   { id: 'qua', name: 'Qua' },
   { id: 'qui', name: 'Qui' },
   { id: 'sex', name: 'Sex' },
+  { id: 'sab', name: 'Sáb' },
+  { id: 'dom', name: 'Dom' },
 ]
+
+const WEEKEND_IDS = new Set(['sab', 'dom'])
 
 interface Task {
   id: number
@@ -31,9 +35,7 @@ export function Board({ initialTasks, weekStart }: BoardProps) {
   const toggleTask = async (id: number) => {
     const task = tasks.find(t => t.id === id)
     if (!task) return
-
     setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t))
-
     try {
       await fetch(`/api/tasks/${id}`, {
         method: 'PATCH',
@@ -63,9 +65,7 @@ export function Board({ initialTasks, weekStart }: BoardProps) {
     setTasks(prev => prev.filter(t => t.id !== id))
     try {
       await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
-    } catch {
-      // revert não é crítico aqui — a tarefa volta no refresh
-    }
+    } catch { /* silent */ }
   }
 
   return (
@@ -87,11 +87,7 @@ export function Board({ initialTasks, weekStart }: BoardProps) {
 }
 
 function Column({
-  day,
-  tasks,
-  onToggle,
-  onAdd,
-  onDelete,
+  day, tasks, onToggle, onAdd, onDelete,
 }: {
   day: { id: string; name: string }
   tasks: Task[]
@@ -111,10 +107,16 @@ function Column({
     setAdding(false)
   }
 
+  const isWeekend = WEEKEND_IDS.has(day.id)
+
   return (
-    <div className="w-[280px] flex flex-col bg-[#131313] rounded-xl p-4 border border-white/5">
+    <div className={`w-[280px] flex flex-col rounded-xl p-4 border ${
+      isWeekend ? 'bg-[#111111] border-white/[0.03]' : 'bg-[#131313] border-white/5'
+    }`}>
       <div className="flex items-center justify-between mb-4 px-1">
-        <h3 className="text-sm font-semibold text-[#acabab]">{day.name}</h3>
+        <h3 className={`text-sm font-semibold ${isWeekend ? 'text-[#7a7a7a]' : 'text-[#acabab]'}`}>
+          {day.name}
+        </h3>
         {tasks.length > 0 && (
           <span className={`text-[10px] px-1.5 py-0.5 rounded ${
             day.id === 'seg'
@@ -157,10 +159,7 @@ function Column({
                 className="bg-[#252626] text-[10px] text-[#acabab] rounded px-2 py-1 outline-none w-24"
               />
               <div className="flex gap-1 ml-auto">
-                <button
-                  onClick={handleAdd}
-                  className="p-1 hover:bg-[#adc6ff]/10 rounded text-[#adc6ff] transition-colors"
-                >
+                <button onClick={handleAdd} className="p-1 hover:bg-[#adc6ff]/10 rounded text-[#adc6ff] transition-colors">
                   <Check className="w-3.5 h-3.5" />
                 </button>
                 <button
@@ -188,21 +187,14 @@ function Column({
   )
 }
 
-function TaskCard({
-  task,
-  onToggle,
-  onDelete,
-}: {
+function TaskCard({ task, onToggle, onDelete }: {
   task: Task
   onToggle: () => void
   onDelete: () => void
 }) {
   return (
     <div className="group flex items-start gap-3 p-2 hover:bg-[#1f2020] rounded-lg transition-all cursor-pointer">
-      <button
-        onClick={onToggle}
-        className="relative w-4 h-4 mt-0.5 shrink-0"
-      >
+      <button onClick={onToggle} className="relative w-4 h-4 mt-0.5 shrink-0">
         <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
           task.completed ? 'bg-[#adc6ff] border-[#adc6ff]' : 'border-[#757575]'
         }`}>
